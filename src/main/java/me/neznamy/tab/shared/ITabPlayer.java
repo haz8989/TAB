@@ -1,10 +1,6 @@
 package me.neznamy.tab.shared;
 
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
 
 import io.netty.channel.Channel;
 import me.neznamy.tab.api.ArmorStandManager;
@@ -30,6 +26,7 @@ public abstract class ITabPlayer implements TabPlayer {
 	protected UUID uniqueId;
 	protected String world;
 	private String permissionGroup = "<null>";
+	private List<String> additionalGroups = new ArrayList<>();
 	private String teamName;
 	private String teamNameNote;
 
@@ -55,6 +52,7 @@ public abstract class ITabPlayer implements TabPlayer {
 
 	protected void init() {
 		setGroup(((GroupRefresher)TAB.getInstance().getFeatureManager().getFeature("group")).detectPermissionGroup(this), false);
+		setAdditionalGroups(((GroupRefresher)TAB.getInstance().getFeatureManager().getFeature("group")).detectAdditionalPermissionGroups(this), false);
 	}
 
 	private void setProperty(String identifier, String rawValue, String source) {
@@ -326,6 +324,13 @@ public abstract class ITabPlayer implements TabPlayer {
 			setProperty(property, value, "Group: " + permissionGroup + ", " + TAB.getInstance().getPlatform().getSeparatorType() + ": " + worldGroup);
 			return;
 		}
+		for (String additionalPermissionGroup: additionalGroups) {
+			String additionalPlayerGroupFromConfig = additionalPermissionGroup.replace(".", "@#@");
+			if ((value = TAB.getInstance().getConfiguration().config.getString("per-" + TAB.getInstance().getPlatform().getSeparatorType() + "-settings." + worldGroup + ".Groups." + additionalPlayerGroupFromConfig + "." + property)) != null) {
+				setProperty(property, value, "Group: " + additionalPermissionGroup + ", " + TAB.getInstance().getPlatform().getSeparatorType() + ": " + worldGroup);
+				return;
+			}
+		}
 		if ((value = TAB.getInstance().getConfiguration().config.getString("per-" + TAB.getInstance().getPlatform().getSeparatorType() + "-settings." + worldGroup + ".Groups._OTHER_." + property)) != null) {
 			setProperty(property, value, "Group: _OTHER_," + TAB.getInstance().getPlatform().getSeparatorType() + ": " + worldGroup);
 			return;
@@ -333,6 +338,13 @@ public abstract class ITabPlayer implements TabPlayer {
 		if ((value = TAB.getInstance().getConfiguration().config.getString("Groups." + playerGroupFromConfig + "." + property)) != null) {
 			setProperty(property, value, "Group: " + permissionGroup);
 			return;
+		}
+		for (String additionalPermissionGroup: additionalGroups) {
+			String additionalPlayerGroupFromConfig = additionalPermissionGroup.replace(".", "@#@");
+			if ((value = TAB.getInstance().getConfiguration().config.getString("Groups." + additionalPlayerGroupFromConfig + "." + property)) != null) {
+				setProperty(property, value, "Group: " + additionalPermissionGroup);
+				return;
+			}
 		}
 		if ((value = TAB.getInstance().getConfiguration().config.getString("Groups._OTHER_." + property)) != null) {
 			setProperty(property, value, "Group: _OTHER_");
@@ -440,6 +452,18 @@ public abstract class ITabPlayer implements TabPlayer {
 		} else {
 			this.permissionGroup = "<null>";
 			TAB.getInstance().getErrorManager().oneTimeConsoleError(TAB.getInstance().getPermissionPlugin().getName() + " v" + TAB.getInstance().getPermissionPlugin().getVersion() + " returned null permission group for " + getName());
+		}
+		if (refreshIfChanged) {
+			forceRefresh();
+		}
+	}
+
+	@Override
+	public void setAdditionalGroups(List<String> additionalGroups, boolean refreshIfChanged) {
+		if (this.additionalGroups.equals(additionalGroups)) return;
+		this.additionalGroups.clear();
+		if (additionalGroups != null) {
+			this.additionalGroups.addAll(additionalGroups);
 		}
 		if (refreshIfChanged) {
 			forceRefresh();

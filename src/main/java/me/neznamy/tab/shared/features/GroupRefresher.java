@@ -1,5 +1,6 @@
 package me.neznamy.tab.shared.features;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
@@ -29,7 +30,8 @@ public class GroupRefresher implements Feature {
 			@Override
 			public void run() {
 				for (TabPlayer p : tab.getPlayers()) {
-					p.setGroup(detectPermissionGroup(p), true); 
+					p.setAdditionalGroups(detectAdditionalPermissionGroups(p), false);
+					p.setGroup(detectPermissionGroup(p), true);
 				}
 			}
 		});
@@ -43,6 +45,13 @@ public class GroupRefresher implements Feature {
 			return getByPrimary(p);
 		}
 		return getFromList(p);
+	}
+
+	public List<String> detectAdditionalPermissionGroups(TabPlayer p) {
+		if (groupsByPermissions) {
+			return getAdditionalByPermission(p);
+		}
+		return new ArrayList<>();
 	}
 
 	public String getByPrimary(TabPlayer p) {
@@ -81,6 +90,21 @@ public class GroupRefresher implements Feature {
 		}
 		tab.getErrorManager().oneTimeConsoleError("Player " + p.getName() + " does not have any group permission while assign-groups-by-permissions is enabled! Did you forget to add his group to primary-group-finding-list?");
 		return "<null>";
+	}
+
+	public List<String> getAdditionalByPermission(TabPlayer p) {
+		List<String> result = new ArrayList<>();
+		boolean skippedPrimary = false;
+		for (Object group : primaryGroupFindingList) {
+			if (p.hasPermission("tab.group." + group)) {
+				if (skippedPrimary) {
+					result.add(String.valueOf(group));
+				} else {
+					skippedPrimary = true;
+				}
+			}
+		}
+		return result;
 	}
 
 	@Override

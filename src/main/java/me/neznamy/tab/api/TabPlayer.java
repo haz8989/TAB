@@ -1,5 +1,6 @@
 package me.neznamy.tab.api;
 
+import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 
@@ -463,6 +464,14 @@ public interface TabPlayer {
 	 * @param refreshIfChanged - whether to refresh properties if value changed or not
 	 */
 	public void setGroup(String group, boolean refreshIfChanged);
+
+
+	/**
+	 * Internal method that sets player's additional groups
+	 * @param additionalGroups - new additoinal groups
+	 * @param refreshIfChanged - wether to refresh properties if value changed or not
+	 */
+	public void setAdditionalGroups(List<String> additionalGroups, boolean refreshIfChanged);
 
 	/**
 	 * Internal method to track scoreboards from other plugins
