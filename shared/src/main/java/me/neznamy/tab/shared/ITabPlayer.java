@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
@@ -475,7 +476,6 @@ public abstract class ITabPlayer implements TabPlayer {
 		}
 	}
 
-	@Override
 	public void setAdditionalGroups(List<String> additionalGroups, boolean refreshIfChanged) {
 		if (this.additionalGroups.equals(additionalGroups)) return;
 		this.additionalGroups.clear();
